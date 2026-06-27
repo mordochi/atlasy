@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
 import { createClient } from '@/lib/supabase/client'
-import type { Animal } from '@/types'
 
-export default function Map({ onAnimalSelect }: { onAnimalSelect: (animal: Animal) => void }) {
+export default function Map() {
+  const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
 
@@ -45,7 +46,7 @@ export default function Map({ onAnimalSelect }: { onAnimalSelect: (animal: Anima
 
         el.addEventListener('click', (e) => {
           e.stopPropagation()
-          onAnimalSelect(animal)
+          router.push(`?animal=${animal.id}`)
         })
       })
     })
@@ -54,7 +55,7 @@ export default function Map({ onAnimalSelect }: { onAnimalSelect: (animal: Anima
       map.remove()
       mapRef.current = null
     }
-  }, [onAnimalSelect])
+  }, [router])
 
   return <div ref={mapContainer} className="w-full h-full" />
 }

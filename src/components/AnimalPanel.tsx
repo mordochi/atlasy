@@ -1,5 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Image from 'next/image'
+import { createClient } from '@/lib/supabase/client'
 import type { Animal } from '@/types'
 
 const GENDER_LABEL = {
@@ -8,14 +12,25 @@ const GENDER_LABEL = {
   unknown: '? Unknown',
 }
 
-export default function AnimalPanel({
-  animal,
-  onClose,
-}: {
-  animal: Animal | null
-  onClose: () => void
-}) {
-  if (!animal) return null
+export default function AnimalPanel() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const animalId = searchParams.get('animal')
+  const [animal, setAnimal] = useState<Animal | null>(null)
+
+  useEffect(() => {
+    if (!animalId) return
+
+    const supabase = createClient()
+    supabase
+      .from('animals')
+      .select('*, species:species_id(id, name_en, emoji)')
+      .eq('id', animalId)
+      .single()
+      .then(({ data }) => { if (data) setAnimal(data) })
+  }, [animalId])
+
+  if (!animalId || !animal) return null
 
   return (
     <div className="absolute top-0 right-0 h-full w-80 bg-white shadow-2xl z-10 flex flex-col overflow-y-auto">
@@ -26,7 +41,7 @@ export default function AnimalPanel({
           <h2 className="text-lg font-semibold text-gray-800">{animal.name}</h2>
         </div>
         <button
-          onClick={onClose}
+          onClick={() => router.push('?')}
           className="text-gray-400 hover:text-gray-600 text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
         >
           ✕
@@ -36,9 +51,11 @@ export default function AnimalPanel({
       <div className="p-4 flex flex-col gap-4">
         {/* Photo */}
         {animal.thumbnail_url ? (
-          <img
+          <Image
             src={animal.thumbnail_url}
             alt={animal.name}
+            width={320}
+            height={208}
             className="w-full h-52 object-cover rounded-xl"
           />
         ) : (
