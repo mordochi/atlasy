@@ -19,7 +19,7 @@ export default function AuthButton() {
       setUser(session?.user ?? null)
     })
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, [supabase.auth])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -44,13 +44,6 @@ export default function AuthButton() {
     })
   }
 
-  async function signInWithApple() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    })
-  }
-
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault()
     if (!email) return
@@ -69,13 +62,13 @@ export default function AuthButton() {
 
   if (user) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600 hidden sm:block truncate max-w-32">
+      <div className="bg-white rounded-2xl shadow-md px-4 py-2 flex items-center gap-3">
+        <span className="text-sm text-gray-600 hidden sm:block truncate max-w-40">
           {user.email}
         </span>
         <button
           onClick={signOut}
-          className="text-sm text-gray-500 hover:text-gray-800 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100"
+          className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
         >
           Sign out
         </button>
@@ -119,16 +112,6 @@ export default function AuthButton() {
                 <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
               </svg>
               Continue with Google
-            </button>
-
-            <button
-              onClick={signInWithApple}
-              className="flex items-center justify-center gap-3 w-full border border-gray-200 rounded-xl py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
-                <path d="M14.26 9.55c-.02-2.17 1.78-3.22 1.86-3.27-1.01-1.48-2.59-1.68-3.15-1.7-1.34-.14-2.62.79-3.3.79-.68 0-1.72-.77-2.83-.75-1.45.02-2.79.84-3.54 2.14-1.51 2.62-.39 6.49 1.08 8.61.72 1.04 1.57 2.2 2.69 2.16 1.08-.04 1.49-.7 2.8-.7 1.3 0 1.67.7 2.8.68 1.16-.02 1.9-1.06 2.61-2.1.82-1.2 1.16-2.37 1.18-2.43-.03-.01-2.19-.84-2.2-3.43zM12.2 3.17c.6-.73 1-1.74.89-2.75-.86.03-1.9.57-2.51 1.29-.55.63-.1 1.74-.03 1.95.94.07 1.9-.47 1.65-2.49z"/>
-              </svg>
-              Continue with Apple
             </button>
 
             <div className="flex items-center gap-3 text-gray-300 text-xs">
