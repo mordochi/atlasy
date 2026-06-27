@@ -57,5 +57,25 @@ export default function Map() {
     }
   }, [router])
 
-  return <div ref={mapContainer} className="w-full h-full" />
+  function locateMe() {
+    navigator.geolocation.getCurrentPosition((pos) => {
+      mapRef.current?.flyTo({
+        center: [pos.coords.longitude, pos.coords.latitude],
+        zoom: 15,
+      })
+    })
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <div ref={mapContainer} className="w-full h-full" />
+      <button
+        onClick={locateMe}
+        className="absolute bottom-16 left-4 z-10 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl cursor-pointer"
+        title="定位到我的位置"
+      >
+        ◎
+      </button>
+    </div>
+  )
 }
