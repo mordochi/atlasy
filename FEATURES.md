@@ -1,8 +1,8 @@
 # Atlasy Feature Roadmap
 
 ## Auth
-- [ ] Sign up / sign in (Supabase Auth)
-- [ ] Only authenticated users can add animals
+- [x] Sign up / sign in — Google OAuth + Magic Link; Apple Login hidden pending Apple Developer setup
+- [ ] Only authenticated users can add animals (UI — DB RLS already enforces this)
 
 ## Add Animal
 - [ ] Add animal form page
