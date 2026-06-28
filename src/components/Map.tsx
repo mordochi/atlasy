@@ -57,6 +57,31 @@ export default function Map() {
     }
   }, [router])
 
+  useEffect(() => {
+    function handleAnimalAdded(e: Event) {
+      const map = mapRef.current
+      if (!map) return
+      const { id, name, lat, lng, species } = (e as CustomEvent).detail
+
+      const el = document.createElement('div')
+      el.className = 'cursor-pointer text-2xl select-none drop-shadow'
+      el.textContent = species?.emoji ?? '🐾'
+      el.title = name
+
+      new mapboxgl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(map)
+
+      el.addEventListener('click', (evt) => {
+        evt.stopPropagation()
+        router.push(`?animal=${id}`)
+      })
+    }
+
+    window.addEventListener('atlasy:animal-added', handleAnimalAdded)
+    return () => window.removeEventListener('atlasy:animal-added', handleAnimalAdded)
+  }, [router])
+
   function locateMe() {
     navigator.geolocation.getCurrentPosition((pos) => {
       mapRef.current?.flyTo({
