@@ -45,7 +45,7 @@ export default function ModalController() {
   }
 
   if (showSpotIt && user) {
-    return <AddAnimalModal onClose={close} />
+    return <AddAnimalModal onClose={close} user={user} />
   }
 
   return null

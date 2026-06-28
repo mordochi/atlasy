@@ -16,16 +16,16 @@ type LocationSource = 'exif' | 'geolocation' | 'manual'
 
 interface Props {
   onClose: () => void
+  user: User
 }
 
-export default function AddAnimalModal({ onClose }: Props) {
+export default function AddAnimalModal({ onClose, user }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const modalRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [user, setUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const isAdmin = (user.app_metadata as Record<string, unknown>)?.is_admin === true
   const [speciesList, setSpeciesList] = useState<Species[]>([])
   const [personalityList, setPersonalityList] = useState<Personality[]>([])
 
@@ -56,11 +56,6 @@ export default function AddAnimalModal({ onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-      setIsAdmin((data.user?.app_metadata as Record<string, unknown>)?.is_admin === true)
-    })
-
     Promise.all([
       supabase.from('species').select('*'),
       supabase.from('personalities').select('*'),
