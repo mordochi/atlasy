@@ -71,3 +71,20 @@ export async function createAnimal(payload: CreateAnimalPayload): Promise<Create
   revalidatePath('/')
   return { success: true, animalId: animalId as string }
 }
+
+export async function recordSighting(animalId: string): Promise<{ success: boolean; alreadySeen?: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('sightings')
+    .insert({ animal_id: animalId, user_id: user.id })
+
+  if (error) {
+    if (error.code === '23505') return { success: true, alreadySeen: true }
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
