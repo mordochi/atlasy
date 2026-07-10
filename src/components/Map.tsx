@@ -5,6 +5,21 @@ import { useRouter } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
 import { createClient } from '@/lib/supabase/client'
 
+const FALLBACK_CENTER: [number, number] = [121.5654, 25.033]
+
+function getInitialCenter(): Promise<[number, number]> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(FALLBACK_CENTER)
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve([pos.coords.longitude, pos.coords.latitude]),
+      () => resolve(FALLBACK_CENTER)
+    )
+  })
+}
+
 export default function Map() {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -15,44 +30,51 @@ export default function Map() {
 
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [121.5654, 25.033],
-      zoom: 13,
-    })
+    let cancelled = false
 
-    mapRef.current = map
+    getInitialCenter().then((center) => {
+      if (cancelled || !mapContainer.current) return
 
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
+      const map = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center,
+        zoom: 13,
+      })
 
-    map.on('load', async () => {
-      const supabase = createClient()
-      const { data: animals } = await supabase
-        .from('animals')
-        .select('*, species:species_id(id, name_en, emoji)')
+      mapRef.current = map
 
-      if (!animals) return
+      map.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
 
-      animals.forEach((animal) => {
-        const el = document.createElement('div')
-        el.className = 'cursor-pointer text-2xl select-none drop-shadow'
-        el.textContent = animal.species?.emoji ?? '🐾'
-        el.title = animal.name
+      map.on('load', async () => {
+        const supabase = createClient()
+        const { data: animals } = await supabase
+          .from('animals')
+          .select('*, species:species_id(id, name_en, emoji)')
 
-        new mapboxgl.Marker({ element: el })
-          .setLngLat([animal.lng, animal.lat])
-          .addTo(map)
+        if (!animals) return
 
-        el.addEventListener('click', (e) => {
-          e.stopPropagation()
-          router.push(`?animal=${animal.id}`)
+        animals.forEach((animal) => {
+          const el = document.createElement('div')
+          el.className = 'cursor-pointer text-2xl select-none drop-shadow'
+          el.textContent = animal.species?.emoji ?? '🐾'
+          el.title = animal.name
+
+          new mapboxgl.Marker({ element: el })
+            .setLngLat([animal.lng, animal.lat])
+            .addTo(map)
+
+          el.addEventListener('click', (e) => {
+            e.stopPropagation()
+            router.push(`?animal=${animal.id}`)
+          })
         })
       })
     })
 
     return () => {
-      map.remove()
+      cancelled = true
+      mapRef.current?.remove()
       mapRef.current = null
     }
   }, [router])
