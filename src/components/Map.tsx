@@ -38,18 +38,21 @@ function createMarkerElement(
   root.className = 'cursor-pointer select-none'
   root.title = name
 
+  // drop-shadow (vs. box-shadow on the photo/pointer separately) casts one
+  // shadow around the pin's whole silhouette so it doesn't double up at the
+  // seam between the circle and the pointer tip.
   const scaleTarget = document.createElement('div')
-  scaleTarget.className = 'flex flex-col items-center'
+  scaleTarget.className = 'flex flex-col items-center drop-shadow-md'
   scaleTarget.style.transformOrigin = 'bottom center'
 
   // Pointer sits behind the photo (lower z-index) so only its tip peeks
   // out below the circle instead of covering part of the photo.
   const pointer = document.createElement('div')
-  pointer.className = 'relative z-0 w-3 h-3 -mt-1.5 bg-white rotate-45 shadow-md'
+  pointer.className = 'relative z-0 w-5.5 h-5.5 -mt-4.5 bg-white rotate-45'
 
   const photo = document.createElement('div')
   photo.className =
-    'relative z-10 w-11 h-11 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-100 flex items-center justify-center'
+    'relative z-10 w-11 h-11 rounded-full border-3 border-white overflow-hidden bg-gray-100 flex items-center justify-center'
 
   if (thumbnailUrl) {
     const img = document.createElement('img')
