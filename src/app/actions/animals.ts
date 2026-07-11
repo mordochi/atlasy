@@ -77,6 +77,20 @@ export async function recordSighting(animalId: string): Promise<{ success: boole
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
 
+  const { data: animal } = await supabase
+    .from('animals')
+    .select('user_id, created_at')
+    .eq('id', animalId)
+    .single()
+
+  if (animal?.user_id === user.id) {
+    const today = new Date().toISOString().split('T')[0]
+    const submittedDate = new Date(animal.created_at).toISOString().split('T')[0]
+    if (submittedDate === today) {
+      return { success: false, error: "You can't log a sighting for an animal you added today" }
+    }
+  }
+
   const { error } = await supabase
     .from('sightings')
     .insert({ animal_id: animalId, user_id: user.id })

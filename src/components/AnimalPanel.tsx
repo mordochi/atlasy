@@ -70,7 +70,7 @@ export default function AnimalPanel() {
   }, [animalId])
 
   async function handleSeenToday() {
-    if (!animal || seenToday || sightingLoading) return
+    if (!animal || seenToday || sightingLoading || isOwnSubmissionToday) return
     if (!user) {
       setShowLoginModal(true)
       return
@@ -85,6 +85,12 @@ export default function AnimalPanel() {
 
   const pronoun = GENDER_PRONOUN[animal.gender ?? 'unknown']
   const currentUrl = `/?animal=${animalId}`
+
+  const isOwnSubmissionToday =
+    !!user &&
+    user.id === animal.user_id &&
+    new Date(animal.created_at).toISOString().split('T')[0] ===
+      new Date().toISOString().split('T')[0]
 
   return (
     <>
@@ -172,13 +178,15 @@ export default function AnimalPanel() {
           {/* Seen today button */}
           <button
             onClick={handleSeenToday}
-            disabled={seenToday || sightingLoading}
+            disabled={seenToday || sightingLoading || isOwnSubmissionToday}
             className="w-full py-2 bg-orange-400 hover:bg-orange-500 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors"
           >
             {seenToday
               ? `✓ Seen ${pronoun} today`
               : sightingLoading
               ? 'Saving…'
+              : isOwnSubmissionToday
+              ? '🎉 Added by you today'
               : `👀 I saw ${pronoun} today!`}
           </button>
         </div>
