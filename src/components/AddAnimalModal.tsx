@@ -187,7 +187,14 @@ export default function AddAnimalModal({ onClose, user }: Props) {
       const species = speciesList.find((s) => s.id === speciesId)
       window.dispatchEvent(
         new CustomEvent('atlasy:animal-added', {
-          detail: { id: result.animalId, name: name.trim(), lat, lng, species },
+          detail: {
+            id: result.animalId,
+            name: name.trim(),
+            lat,
+            lng,
+            species,
+            thumbnail_url: photoStorageUrl,
+          },
         })
       )
       // Navigate to the new animal — ?spot-it is cleared, so ModalController unmounts this modal
