@@ -5,12 +5,22 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import imageCompression from 'browser-image-compression'
+import { uniqueNamesGenerator, adjectives, animals as animalNames } from 'unique-names-generator'
 import { createClient } from '@/lib/supabase/client'
 import { createAnimal } from '@/app/actions/animals'
 import type { Species, Personality } from '@/types'
 import type { User } from '@supabase/supabase-js'
 
 const LocationPicker = dynamic(() => import('./LocationPicker'), { ssr: false })
+
+function randomAnimalName(): string {
+  return uniqueNamesGenerator({
+    dictionaries: [adjectives, animalNames],
+    separator: ' ',
+    style: 'capital',
+    length: 2,
+  })
+}
 
 type LocationSource = 'exif' | 'geolocation' | 'manual'
 
@@ -43,7 +53,7 @@ export default function AddAnimalModal({ onClose, user }: Props) {
   const [showLocationPicker, setShowLocationPicker] = useState(false)
 
   // Form fields
-  const [name, setName] = useState('')
+  const [name, setName] = useState(randomAnimalName)
   const [speciesId, setSpeciesId] = useState('cat')
   const [selectedPersonalities, setSelectedPersonalities] = useState<string[]>([])
   const [gender, setGender] = useState<'' | 'male' | 'female' | 'unknown'>('')
