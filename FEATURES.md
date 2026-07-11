@@ -25,7 +25,7 @@
 - [ ] Filter visible species via `NEXT_PUBLIC_ALLOWED_SPECIES` env var (comma-separated, e.g. `cat`); if unset, all species are shown
 
 ## Interactions
-- [ ] "Seen today" button — requires login and browser geolocation; only registers a sighting if the user is within 300m of the animal's recorded location
+- [x] "Seen today" button — requires login and browser geolocation; only registers a sighting if the user is within 300m of the animal's recorded location
 
 ## Sharing
 - [ ] Shareable animal URLs (already have `?animal=id`)

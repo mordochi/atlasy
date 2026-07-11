@@ -5,9 +5,16 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { recordSighting } from '@/app/actions/animals'
+import { distanceInMeters } from '@/lib/geo'
 import SignInModal from './SignInModal'
 import type { Animal } from '@/types'
 import type { User } from '@supabase/supabase-js'
+
+const SIGHTING_MAX_DISTANCE_METERS = 300
+
+function formatDistance(meters: number): string {
+  return meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters)}m`
+}
 
 const GENDER_LABEL = {
   male: '♂ Male',
@@ -29,6 +36,7 @@ export default function AnimalPanel() {
   const [user, setUser] = useState<User | null>(null)
   const [seenToday, setSeenToday] = useState(false)
   const [sightingLoading, setSightingLoading] = useState(false)
+  const [sightingError, setSightingError] = useState<string | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
 
   useEffect(() => {
@@ -45,6 +53,7 @@ export default function AnimalPanel() {
 
     setAnimal(null)
     setSeenToday(false)
+    setSightingError(null)
 
     const supabase = createClient()
 
@@ -75,10 +84,40 @@ export default function AnimalPanel() {
       setShowLoginModal(true)
       return
     }
+
+    setSightingError(null)
+
+    if (!navigator.geolocation) {
+      setSightingError('Your browser does not support location, which is required to log a sighting')
+      return
+    }
+
     setSightingLoading(true)
-    const result = await recordSighting(animal.id)
-    if (result.success) setSeenToday(true)
-    setSightingLoading(false)
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        const distance = distanceInMeters(latitude, longitude, animal.lat, animal.lng)
+        if (distance > SIGHTING_MAX_DISTANCE_METERS) {
+          setSightingError(`You're ${formatDistance(distance)} away — get within ${SIGHTING_MAX_DISTANCE_METERS}m to log a sighting`)
+          setSightingLoading(false)
+          return
+        }
+
+        const result = await recordSighting(animal.id, latitude, longitude)
+        if (result.success) {
+          setSeenToday(true)
+        } else {
+          setSightingError(result.error ?? 'Something went wrong')
+        }
+        setSightingLoading(false)
+      },
+      () => {
+        setSightingError('Enable location access to log a sighting')
+        setSightingLoading(false)
+      },
+      { timeout: 8000 }
+    )
   }
 
   if (!animalId || !animal) return null
@@ -184,11 +223,12 @@ export default function AnimalPanel() {
             {seenToday
               ? `✓ Seen ${pronoun} today`
               : sightingLoading
-              ? 'Saving…'
+              ? 'Checking location…'
               : isOwnSubmissionToday
               ? '🎉 Added by you today'
               : `👀 I saw ${pronoun} today!`}
           </button>
+          {sightingError && <p className="text-xs text-red-500 -mt-2">{sightingError}</p>}
         </div>
       </div>
 
